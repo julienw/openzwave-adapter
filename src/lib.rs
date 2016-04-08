@@ -11,7 +11,7 @@ use taxonomy::api::{ ResultMap, Error as TaxError, InternalError, User };
 use taxonomy::adapter::{ AdapterManagerHandle, AdapterWatchGuard, WatchEvent };
 use transformable_channels::mpsc::ExtSender;
 
-use openzwave::{ InitOptions, ZWaveManager, ZWaveNotification };
+use openzwave::{ ConfigPath, InitOptions, ZWaveManager, ZWaveNotification };
 use openzwave::{ CommandClass, ValueGenre, ValueType, ValueID };
 use openzwave::{ Controller };
 
@@ -202,7 +202,7 @@ impl OpenzwaveAdapter {
     pub fn init<T: AdapterManagerHandle + Send + Sync + 'static> (box_manager: &Arc<T>) -> Result<(), Error> {
         let options = InitOptions {
             device: None, // TODO we should expose this as a Value
-            config_path: "./config/openzwave/",
+            config_path: ConfigPath::Default,
             user_path: "./config/openzwave/",
         };
 
