@@ -7,14 +7,26 @@ use transformable_channels::mpsc::ExtSender;
 
 use std::collections::HashMap;
 use std::sync::{ Arc, Mutex, Weak };
+use std::ops::AddAssign;
+
+#[derive(Debug, PartialEq, Eq, Hash, Default, Clone, Copy)]
+struct WatcherKey {
+    key: usize,
+}
+
+impl AddAssign<usize> for WatcherKey {
+    fn add_assign(&mut self, rhs: usize) {
+        self.key += rhs;
+    }
+}
 
 pub type SyncSender = Mutex<Box<ExtSender<WatchEvent>>>;
-type WatchersMap = HashMap<usize, Arc<SyncSender>>;
+type WatchersMap = HashMap<WatcherKey, Arc<SyncSender>>;
 type RangedWeakSender = (Option<Range>, Weak<SyncSender>);
 pub type RangedSyncSender = (Option<Range>, Arc<SyncSender>);
 
 pub struct Watchers {
-    current_index: usize,
+    current_index: WatcherKey,
     map: Arc<Mutex<WatchersMap>>,
     getter_map: HashMap<TaxId<Getter>, Vec<RangedWeakSender>>,
 }
@@ -22,7 +34,7 @@ pub struct Watchers {
 impl Watchers {
     pub fn new() -> Self {
         Watchers {
-            current_index: 0,
+            current_index: Default::default(),
             map: Arc::new(Mutex::new(HashMap::new())),
             getter_map: HashMap::new(),
         }
@@ -45,11 +57,6 @@ impl Watchers {
         }
     }
 
-    fn get(&self, index: usize) -> Option<Arc<SyncSender>> {
-        let map = self.map.lock().unwrap();
-        map.get(&index).cloned()
-    }
-
     pub fn get_from_tax_id(&self, tax_id: &TaxId<Getter>) -> Option<Vec<RangedSyncSender>> {
         self.getter_map.get(tax_id).and_then(|vec| {
             let vec: Vec<_> = vec.iter().filter_map(|&(ref range, ref weak_sender)| {
@@ -62,7 +69,7 @@ impl Watchers {
 }
 
 pub struct WatcherGuard {
-    key: usize,
+    key: WatcherKey,
     map: Arc<Mutex<WatchersMap>>,
 }
 
