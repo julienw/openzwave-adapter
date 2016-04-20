@@ -237,14 +237,14 @@ fn set_ozw_vid_from_tax_value(vid: &ValueID, value: Value) -> Result<(), TaxErro
     match vid.get_type() {
         ValueType::ValueType_Bool => {
             match value {
-                //Value::OnOff(onOff) => { vid.set_bool(onOff == OnOff::On); } // TODO support switches
-                Value::OpenClosed(open_closed) => { vid.set_bool(open_closed == OpenClosed::Open); }
-                Value::DoorLocked(locked_unlocked) => { vid.set_bool(locked_unlocked == DoorLocked::Locked); }
-                _ => { return Err(TaxError::InternalError(InternalError::GenericError(format!("Unsupported value type: {:?}", value)))); }
+                //Value::OnOff(onOff) => { vid.set_bool(onOff == OnOff::On) } // TODO support switches
+                Value::OpenClosed(open_closed) => { vid.set_bool(open_closed == OpenClosed::Open) }
+                Value::DoorLocked(locked_unlocked) => { vid.set_bool(locked_unlocked == DoorLocked::Locked) }
+                _ => { return Err(TaxError::InvalidValue(value)) } // TODO InvalidType would be better but we'll need to fix specific types for specific TaxIds
             }
         }
-        _ => { return Err(TaxError::InternalError(InternalError::GenericError(format!("Unsupported OZW type: {:?}", vid.get_type())))); }
-    };
+        _ => { return Err(TaxError::InternalError(InternalError::GenericError(format!("Unsupported OZW type: {:?}", vid.get_type())))) }
+    }
     Ok(())
 }
 
